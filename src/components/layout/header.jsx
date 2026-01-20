@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { User, LogIn } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { User, LogIn, LogOut, Settings, ShoppingBag, ShoppingCart, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 // Logo Component
 const Logo = () => (
@@ -13,7 +14,11 @@ const Logo = () => (
 const Header = () => {
     const [isFixed, setIsFixed] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
+    const dropdownRef = useRef(null);
+    const { user, isAuthenticated, logout } = useAuth();
 
     // Handle scroll for fixed header
     useEffect(() => {
@@ -22,6 +27,17 @@ const Header = () => {
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const menuItems = [
@@ -35,6 +51,12 @@ const Header = () => {
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const handleLogout = () => {
+        logout();
+        setIsDropdownOpen(false);
+        navigate('/');
     };
 
     return (
@@ -60,17 +82,72 @@ const Header = () => {
                                 ))}
                             </ul>
 
-                            {/* Auth Buttons */}
-                            <div className="auth-buttons">
-                                <Link to="/login" className="btn-login">
-                                    <LogIn size={16} />
-                                    <span>Đăng nhập</span>
-                                </Link>
-                                <Link to="/register" className="btn-register">
-                                    <User size={16} />
-                                    <span>Đăng ký</span>
-                                </Link>
-                            </div>
+                            {/* Auth Buttons or User Avatar */}
+                            {isAuthenticated() && user ? (
+                                <div className="user-actions-wrapper">
+                                    {/* Cart Icon */}
+                                    {user.role !== 'admin' && (
+                                        <Link to="/cart" className="cart-icon-btn">
+                                            <ShoppingCart size={22} />
+                                            <span className="cart-badge">3</span>
+                                        </Link>
+                                    )}
+
+                                    <div className="user-dropdown-wrapper" ref={dropdownRef}>
+                                        <button
+                                            className="user-avatar-btn"
+                                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                        >
+                                            <div className="user-avatar-header">
+                                                {user.avatar ? (
+                                                    <img src={user.avatar} alt={user.name} />
+                                                ) : (
+                                                    <span>{user.name?.charAt(0).toUpperCase()}</span>
+                                                )}
+                                            </div>
+                                            <span className="user-name-header">{user.name}</span>
+                                            <ChevronDown size={16} className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`} />
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        {isDropdownOpen && (
+                                            <div className="user-dropdown-menu">
+                                                <div className="dropdown-header">
+                                                    <div className="dropdown-user-info">
+                                                        <span className="dropdown-user-name">{user.name}</span>
+                                                        <span className="dropdown-user-email">{user.email}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="dropdown-divider"></div>
+                                                <Link to="/profile" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                                                    <User size={16} />
+                                                    <span>Tài khoản của tôi</span>
+                                                </Link>
+                                                <Link to="/orders" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                                                    <ShoppingBag size={16} />
+                                                    <span>Đơn hàng</span>
+                                                </Link>
+                                                <div className="dropdown-divider"></div>
+                                                <button className="dropdown-item logout" onClick={handleLogout}>
+                                                    <LogOut size={16} />
+                                                    <span>Đăng xuất</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="auth-buttons">
+                                    <Link to="/login" className="btn-login">
+                                        <LogIn size={16} />
+                                        <span>Đăng nhập</span>
+                                    </Link>
+                                    <Link to="/register" className="btn-register">
+                                        <User size={16} />
+                                        <span>Đăng ký</span>
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
 

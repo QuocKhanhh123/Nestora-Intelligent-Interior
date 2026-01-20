@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+    Star,
+    ArrowRight,
+    ChevronLeft,
+    ChevronRight,
+    Sofa,
+    BedDouble,
+    UtensilsCrossed,
+    Bath,
+    Baby,
+    Monitor,
+    Layers,
+    Lamp
+} from 'lucide-react';
 
 // Import images từ assets
 import bannerImg from '../assets/images/AnhCat/banner.png';
-import phongKhachImg from '../assets/images/AnhCat/phong-khach.png';
-import phongNguImg from '../assets/images/AnhCat/phong-ngu.png';
-import phongBepImg from '../assets/images/AnhCat/phong-bep.png';
-import phongTamImg from '../assets/images/AnhCat/phong-tam.png';
-import treEmImg from '../assets/images/AnhCat/tre-em.png';
-import vanPhongImg from '../assets/images/AnhCat/van-phong.png';
-import cauThangImg from '../assets/images/AnhCat/cau-thang.png';
-import denTrangTriImg from '../assets/images/AnhCat/den-trang-tri.png';
 import sp1Img from '../assets/images/AnhCat/sp-1.png';
 import sp2Img from '../assets/images/AnhCat/sp-2.png';
 import sp3Img from '../assets/images/AnhCat/sp-3.png';
@@ -42,14 +47,14 @@ import gheImg from '../assets/images/AnhCat/ghe.png';
 import lienheBgImg from '../assets/images/AnhCat/lienhe-bg.jpg';
 
 const categories = [
-    { id: 1, name: 'PHÒNG KHÁCH', image: phongKhachImg },
-    { id: 2, name: 'PHÒNG NGỦ', image: phongNguImg },
-    { id: 3, name: 'PHÒNG BẾP', image: phongBepImg },
-    { id: 4, name: 'PHÒNG TẮM', image: phongTamImg },
-    { id: 5, name: 'TRẺ EM', image: treEmImg },
-    { id: 6, name: 'VĂN PHÒNG', image: vanPhongImg },
-    { id: 7, name: 'CẦU THANG', image: cauThangImg },
-    { id: 8, name: 'ĐÈN TRANG TRÍ', image: denTrangTriImg },
+    { id: 1, name: 'PHÒNG KHÁCH', icon: Sofa },
+    { id: 2, name: 'PHÒNG NGỦ', icon: BedDouble },
+    { id: 3, name: 'PHÒNG BẾP', icon: UtensilsCrossed },
+    { id: 4, name: 'PHÒNG TẮM', icon: Bath },
+    { id: 5, name: 'TRẺ EM', icon: Baby },
+    { id: 6, name: 'VĂN PHÒNG', icon: Monitor },
+    { id: 7, name: 'CẦU THANG', icon: Layers },
+    { id: 8, name: 'ĐÈN TRANG TRÍ', icon: Lamp },
 ];
 
 const products = [
@@ -192,16 +197,19 @@ const HomePage = () => {
             <div className="content-wrap container mx-auto px-4">
                 {/* Categories */}
                 <section className="categories">
-                    {categories.map((category) => (
-                        <div key={category.id} className="category-item">
-                            <Link to={`/products?category=${category.id}`}>
-                                <div className="category-img">
-                                    <img src={category.image} alt={category.name} className="img-cate" />
-                                </div>
-                                <p>{category.name}</p>
-                            </Link>
-                        </div>
-                    ))}
+                    {categories.map((category) => {
+                        const IconComponent = category.icon;
+                        return (
+                            <div key={category.id} className="category-item">
+                                <Link to={`/products?category=${category.id}`}>
+                                    <div className="category-icon">
+                                        <IconComponent size={48} strokeWidth={1.5} />
+                                    </div>
+                                    <p>{category.name}</p>
+                                </Link>
+                            </div>
+                        );
+                    })}
                 </section>
 
                 {/* Hot Products */}
@@ -299,6 +307,45 @@ const HomePage = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SUGGESTED PRODUCTS */}
+            <section className="suggested-products">
+                <div className="container mx-auto px-4">
+                    <h2 className="header-prd">Sản phẩm gợi ý dành cho bạn</h2>
+                    <p className="text-center text-gray-600 mb-8">Những sản phẩm được chọn lọc phù hợp với phong cách của bạn</p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {products.slice(4, 8).map((product) => (
+                            <div key={`suggested-${product.id}`} className="product suggested-item">
+                                <div className="img">
+                                    <img src={product.image} alt={product.name} className="w-full" />
+                                    <div className="overlay">
+                                        <Link to={`/products/${product.id}`} className="view-btn">
+                                            Xem chi tiết
+                                        </Link>
+                                    </div>
+                                </div>
+                                <div className="info">
+                                    <p className="name">
+                                        <Link to={`/products/${product.id}`}>{product.name}</Link>
+                                    </p>
+                                    <StarRating rating={5} />
+                                    <p className="desc">{product.desc}</p>
+                                    <p className="price">
+                                        <span>{product.price}</span> VNĐ
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="text-center mt-8">
+                        <Link to="/products" className="btn-view-all">
+                            Xem tất cả sản phẩm <ArrowRight size={16} className="inline ml-1" />
+                        </Link>
                     </div>
                 </div>
             </section>

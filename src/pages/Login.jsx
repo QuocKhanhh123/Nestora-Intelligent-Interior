@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle, XCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
     const [formData, setFormData] = useState({
@@ -9,6 +10,10 @@ const LoginPage = () => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [notification, setNotification] = useState({ show: false, type: '', message: '', user: null });
+
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -21,18 +26,74 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setNotification({ show: false, type: '', message: '', user: null });
 
-        // Simulate API call
-        console.log('Login:', formData);
+        // Simulate API delay
         setTimeout(() => {
+            const result = login(formData.email, formData.password);
             setIsLoading(false);
-            alert('Đăng nhập thành công!');
-        }, 1500);
+
+            if (result.success) {
+                // Admin: redirect to admin dashboard
+                if (result.user.role === 'admin') {
+                    navigate('/admin');
+                } else {
+                    // User: show success notification and stay on page (will show avatar in header)
+                    const roleText = 'Khách hàng';
+                    setNotification({
+                        show: true,
+                        type: 'success',
+                        message: `Đăng nhập thành công! Xin chào ${result.user.name}`,
+                        user: result.user,
+                        roleText
+                    });
+                    // Redirect to home after 1.5 seconds
+                    setTimeout(() => {
+                        navigate('/');
+                    }, 1500);
+                }
+            } else {
+                setNotification({
+                    show: true,
+                    type: 'error',
+                    message: result.message,
+                    user: null
+                });
+            }
+        }, 1000);
     };
 
     return (
         <div className="auth-page">
             <div className="auth-container">
+                {/* Notification Toast */}
+                {notification.show && (
+                    <div className={`login-notification ${notification.type}`}>
+                        <div className="notification-icon">
+                            {notification.type === 'success' ? (
+                                <CheckCircle size={24} />
+                            ) : (
+                                <XCircle size={24} />
+                            )}
+                        </div>
+                        <div className="notification-content">
+                            <span className="notification-message">{notification.message}</span>
+                            {notification.user && (
+                                <div className="notification-user-info">
+                                    <span className="user-role-badge">{notification.roleText}</span>
+                                    <span className="user-email">{notification.user.email}</span>
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            className="notification-close"
+                            onClick={() => setNotification({ show: false, type: '', message: '', user: null })}
+                        >
+                            <XCircle size={18} />
+                        </button>
+                    </div>
+                )}
+
                 <div className="auth-card">
                     {/* Left Side - Image/Brand */}
                     <div className="auth-brand">
